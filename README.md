@@ -6,17 +6,11 @@ A collection of pre-built n8n workflow templates for integrating Salla e-commerc
 
 This repository contains ready-to-use n8n workflow templates that help you integrate your Salla store with different platforms and services. These templates are designed to automate common e-commerce workflows and data synchronization tasks.
 
+[Salla N8N Node](https://www.npmjs.com/package/n8n-nodes-salla) community node that lets you use Salla.sa e-commerce platform in your n8n workflows.
+
 [Salla](https://salla.sa/) is a leading e-commerce platform in Saudi Arabia and the Middle East that allows merchants to create online stores and manage their business operations.
 
 [n8n](https://n8n.partnerlinks.io/4wjly6af9vki) is a [fair-code licensed](https://docs.n8n.io/reference/license/) workflow automation platform.
-
-[eCommerce Automation & Personalization](#eCommerce Automation & Personalization)  
-[Installation](#installation) 
-[Operations](#operations)  
-[Credentials](#credentials)  
-[Compatibility](#compatibility)  
-[Usage](#usage)  
-[Resources](#resources)  
 
 ## eCommerce Automation & Personalization
 **[🚀 Join Our Community](https://www.linkedin.com/groups/10153121/)**
