@@ -1,0 +1,716 @@
+{
+    "name": "Salla - Supabase n8n - Template",
+    "nodes": [
+      {
+        "parameters": {
+          "events": [
+            "*"
+          ],
+          "webhookSecret": "Submit Your Webhook Secret"
+        },
+        "type": "n8n-nodes-salla1.sallaTrigger",
+        "typeVersion": 1,
+        "position": [
+          -896,
+          960
+        ],
+        "id": "",
+        "name": "Salla Trigger",
+        "webhookId": "",
+        "credentials": {
+          "sallaOAuth2Api": {
+            "id": "",
+            "name": "Salla account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.event }}",
+                      "rightValue": "order.createdw",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "id": ""
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 2
+                  },
+                  "conditions": [
+                    {
+                      "id": "",
+                      "leftValue": "",
+                      "rightValue": "",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals",
+                        "name": "filter.operator.equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.2,
+        "position": [
+          -688,
+          960
+        ],
+        "id": "",
+        "name": "Event Routing"
+      },
+      {
+        "parameters": {
+          "tableId": "customers",
+          "dataToSend": "autoMapInputData"
+        },
+        "id": "",
+        "name": "Upsert Customer",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          -16,
+          768
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "",
+            "name": "Supabase n8n project"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "tableId": "orders",
+          "dataToSend": "autoMapInputData"
+        },
+        "id": "",
+        "name": "Insert Order",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          -16,
+          960
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "",
+            "name": "Supabase n8n project"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "tableId": "order_lines",
+          "dataToSend": "autoMapInputData"
+        },
+        "id": "",
+        "name": "Insert Order Lines",
+        "type": "n8n-nodes-base.supabase",
+        "typeVersion": 1,
+        "position": [
+          208,
+          1168
+        ],
+        "credentials": {
+          "supabaseApi": {
+            "id": "",
+            "name": "Supabase n8n project"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "\n// Extract orderLineRecords from the first object in the array\nconst orderLineRecords = $input.first().json.orderLineRecords;\n\n// Return each order line record as a separate item for n8n to loop through\nreturn orderLineRecords.map(record => ({ json: record }));"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -16,
+          1168
+        ],
+        "id": "",
+        "name": "OrderLines Object"
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 1
+                  },
+                  "conditions": [
+                    {
+                      "id": "",
+                      "leftValue": "={{ $json.type }}",
+                      "rightValue": "customer",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals",
+                        "name": "filter.operator.equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 1
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.type }}",
+                      "rightValue": "order",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "id": ""
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 1
+                  },
+                  "conditions": [
+                    {
+                      "id": "",
+                      "leftValue": "={{ $json.type }}",
+                      "rightValue": "orderLine",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals",
+                        "name": "filter.operator.equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                }
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "",
+        "name": "Route by Data Type",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3,
+        "position": [
+          -240,
+          960
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// N8N JavaScript Code to Convert Salla Order JSON to Supabase Records\nconst sallaOrder = $json;\nconst orderData = sallaOrder.data;\n\n// Helper function to convert date string to ISO format\nfunction convertToISODate(dateString) {\n  return new Date(dateString.replace(' ', 'T') + 'Z').toISOString();\n}\n\n// Helper function to get internal store_id from Salla store_id\n// You'll need to implement this mapping based on your stores table\nfunction getStoreId(sallaStoreId) {\n  // Query your stores table or use a mapping object\n  const storeMapping = {\n    '1320294021': 1 // Example mapping\n  };\n  return storeMapping[sallaStoreId] || null;\n}\n\n// Helper function to get internal customer_id from Salla customer_id\nfunction getCustomerId(sallaCustomerId) {\n  // You might need to query your customers table\n  // or create a new customer if not exists\n  return sallaCustomerId; // Placeholder\n}\nconst results = [];\n\n  results.push({\n    json: {\n      \n  type: 'order',\n  store_id: getStoreId(orderData.store.id),\n  salla_id: orderData.id,\n  salla_reference_id: orderData.reference_id,\n  total: parseFloat(orderData.amounts.total.amount),\n  date: convertToISODate(orderData.date.date).split('T')[0],\n  status: orderData.status.slug,\n  salla_status: orderData.status.name,\n  salla_status_id: orderData.status.id,\n  source: orderData.source,\n  source_device: orderData.source_details.device,\n  payment_method: orderData.payment_method,\n  customer_id: getCustomerId(orderData.customer.id),\n  datetime: convertToISODate(orderData.date.date),\n  db_datetim: new Date().toISOString()\n    }\n  });\n// Prepare order line items\nconst orderLineRecords = orderData.items.map(item => ({\n  store_id: getStoreId(orderData.store.id),\n  product_id: item.product.id,\n  sku: item.sku,\n  platform_order_product_id: item.id.toString(),\n  platform_order_id: orderData.id.toString(),\n  platform_product_id: item.product.id.toString(),\n  product_name: item.name,\n  quantity: parseFloat(item.quantity),\n  weight: parseFloat(item.weight),\n  weight_label: item.weight_label,\n  price: parseFloat(item.amounts.price_without_tax.amount),\n  total: parseFloat(item.amounts.total.amount),\n  total_discount: parseFloat(item.amounts.total_discount.amount),\n  order_status: orderData.status.slug,\n  product_status: item.product.status,\n  datetime: convertToISODate(orderData.date.date)\n}));\n  results.push({\n    json: {\n      type: 'orderLine',\n      orderLineRecords\n    }\n  });\n// Handle customer data if needed\nconst customerRecord = {\n  type: 'customer',\n  store_id: getStoreId(orderData.store.id),\n  first_name: orderData.customer.first_name,\n  last_name: orderData.customer.last_name,\n  mobile_code: orderData.customer.mobile_code,\n  mobile: orderData.customer.mobile,\n  email: orderData.customer.email,\n  birthday: orderData.customer.birthday ? orderData.customer.birthday.date.split(' ')[0] : null,\n  salla_id: orderData.customer.id\n};\n  results.push({\n    json: {\n      type: 'customer',\n  store_id: getStoreId(orderData.store.id),\n  first_name: orderData.customer.first_name,\n  last_name: orderData.customer.last_name,\n  mobile_code: orderData.customer.mobile_code,\n  mobile: orderData.customer.mobile,\n  email: orderData.customer.email,\n  birthday: orderData.customer.birthday ? orderData.customer.birthday.date.split(' ')[0] : null,\n  salla_id: orderData.customer.id\n    }\n  });\nreturn results;"
+        },
+        "id": "",
+        "name": "Order Data Processing",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -464,
+          960
+        ]
+      }
+    ],
+    "pinData": {
+      "Salla Trigger": [
+        {
+          "json": {
+            "event": "order.created",
+            "timestamp": "2025-06-09T03:23:04.401Z",
+            "data": {
+              "id": 1916228436,
+              "checkout_id": null,
+              "reference_id": 188437489,
+              "urls": {
+                "customer": "https://demostore.salla.sa/dev-restaurant/order/",
+                "admin": "https://s.salla.sa/orders/order/",
+                "rating": null,
+                "digital_content": "https://demostore.salla.sa/dev-restaurant/orders/digital/",
+                "checkout": "https://demostore.salla.sa/dev-restaurant/checkout/"
+              },
+              "date": {
+                "date": "2025-06-09 05:00:55.000000",
+                "timezone_type": 3,
+                "timezone": "Asia/Riyadh"
+              },
+              "updated_at": {
+                "date": "2025-06-09 06:23:02.120900",
+                "timezone_type": 3,
+                "timezone": "Asia/Riyadh"
+              },
+              "source": "dashboard",
+              "draft": false,
+              "read": true,
+              "source_details": {
+                "type": "dashboard",
+                "value": null,
+                "device": "desktop",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36",
+                "utm_source": "",
+                "utm_campaign": "",
+                "utm_medium": "",
+                "utm_term": "",
+                "utm_content": "",
+                "ip": null
+              },
+              "status": {
+                "id": 32423,
+                "name": "بإنتظار المراجعة",
+                "slug": "under_review",
+                "customized": {
+                  "id": 42234,
+                  "name": "بإنتظار المراجعة"
+                }
+              },
+              "is_price_quote": false,
+              "payment_method": "waiting",
+              "receipt_image": null,
+              "currency": "SAR",
+              "amounts": {
+                "sub_total": {
+                  "amount": 1010,
+                  "currency": "SAR"
+                },
+                "shipping_cost": {
+                  "amount": 0,
+                  "currency": "SAR"
+                },
+                "cash_on_delivery": {
+                  "amount": 0,
+                  "currency": "SAR"
+                },
+                "tax": {
+                  "percent": "0.00",
+                  "amount": {
+                    "amount": 0,
+                    "currency": "SAR"
+                  }
+                },
+                "discounts": [],
+                "total": {
+                  "amount": 1010,
+                  "currency": "SAR"
+                }
+              },
+              "exchange_rate": {
+                "base_currency": "SAR",
+                "exchange_currency": "SAR",
+                "rate": "1.00000000"
+              },
+              "can_cancel": false,
+              "campaign": {
+                "medium": "",
+                "source": "",
+                "campaign": ""
+              },
+              "show_weight": false,
+              "can_reorder": false,
+              "is_pending_payment": true,
+              "pending_payment_ends_at": 167872,
+              "total_weight": "٢١٦٫٢٥ كجم",
+              "features": {
+                "shippable": true,
+                "digitalable": false,
+                "pickable": false,
+                "multiple_shipments_supported": false,
+                "order_type_price_quote": false,
+                "has_suspicious_alert": false
+              },
+              "shipping": null,
+              "shipments": null,
+              "pending_payment_start_at": {
+                "date": "2025-06-10 05:00:55.000000",
+                "timezone_type": 3,
+                "timezone": "Asia/Riyadh"
+              },
+              "accepted_payment_methods": [
+                "bank"
+              ],
+              "shipment_branch": [
+                {
+                  "id": 2342323,
+                  "name": "الفرع الرئيسي",
+                  "status": "active",
+                  "is_default": true,
+                  "type": {}
+                }
+              ],
+              "payment_actions": {
+                "refund_action": {
+                  "has_refund_amount": false,
+                  "payment_method_label": "بإنتظار الدفع",
+                  "can_print_refund_invoice": false,
+                  "paid_amount": {
+                    "amount": 0,
+                    "currency": "SAR"
+                  },
+                  "refund_amount": {
+                    "amount": 0,
+                    "currency": "SAR"
+                  },
+                  "loyalty_point_programs": [],
+                  "can_send_sms": false,
+                  "can_send_sms_msg": "يرجى تفعيل احد مزودين خدمة SMS من صفحة ربط الخدمات"
+                },
+                "remaining_action": {
+                  "has_remaining_amount": true,
+                  "payment_method_label": "بإنتظار الدفع",
+                  "paid_amount": {
+                    "amount": 0,
+                    "currency": "SAR"
+                  },
+                  "checkout_url": "",
+                  "remaining_amount": {
+                    "amount": 1010,
+                    "currency": "SAR"
+                  }
+                }
+              },
+              "notes": null,
+              "customer": {
+                "id": 638714188,
+                "full_name": "Amer Ali",
+                "first_name": "Amer",
+                "last_name": "Ali",
+                "mobile": 541234567,
+                "mobile_code": "+966",
+                "email": "email@example.com",
+                "urls": {
+                  "customer": "https://demostore.salla.sa/dev-restaurant/profile",
+                  "admin": "https://s.salla.sa/customers/xxxxxxxxxx"
+                },
+                "avatar": "https://cdn.assets.salla.network/prod/admin/cp/assets/images/avatar_male.png",
+                "gender": "male",
+                "birthday": {
+                  "date": "1983-02-02 00:00:00.000000",
+                  "timezone_type": 3,
+                  "timezone": "Asia/Riyadh"
+                },
+                "city": "",
+                "country": "مصر",
+                "country_code": "EG",
+                "currency": "SAR",
+                "location": "",
+                "lang": "ar",
+                "created_at": {
+                  "date": "2023-01-23 16:01:42.000000",
+                  "timezone_type": 3,
+                  "timezone": "Asia/Riyadh"
+                },
+                "updated_at": {
+                  "date": "2023-08-13 20:48:42.000000",
+                  "timezone_type": 3,
+                  "timezone": "Asia/Riyadh"
+                },
+                "groups": []
+              },
+              "items": [
+                {
+                  "id": 305086923,
+                  "name": "برتقال أبو صره",
+                  "sku": "sku-1001",
+                  "product_sku_id": null,
+                  "quantity": 145,
+                  "currency": "SAR",
+                  "weight": 145,
+                  "weight_label": "١ كجم",
+                  "weight_type": "kg",
+                  "product_type": "food",
+                  "product_thumbnail": "https://cdn.salla.sa/jYnPX/WTRFk5Kh27UiOsJgU5iXJL3Qx1Z5906EWSYq3hwB.jpg",
+                  "mpn": null,
+                  "gtin": null,
+                  "amounts": {
+                    "price_without_tax": {
+                      "amount": 5,
+                      "currency": "SAR"
+                    },
+                    "total_discount": {
+                      "amount": 0,
+                      "currency": "SAR"
+                    },
+                    "tax": {
+                      "percent": "0.00",
+                      "amount": {
+                        "amount": 0,
+                        "currency": "SAR"
+                      }
+                    },
+                    "total": {
+                      "amount": 725,
+                      "currency": "SAR"
+                    }
+                  },
+                  "notes": "",
+                  "product": {
+                    "id": 1869144195,
+                    "type": "food",
+                    "promotion": {
+                      "title": null,
+                      "sub_title": null
+                    },
+                    "quantity": null,
+                    "status": "sale",
+                    "is_available": true,
+                    "sku": "sku-1001",
+                    "name": "برتقال أبو صره",
+                    "price": {
+                      "amount": 5,
+                      "currency": "SAR"
+                    },
+                    "sale_price": {
+                      "amount": 0,
+                      "currency": "SAR"
+                    },
+                    "currency": "SAR",
+                    "url": "https://demostore.salla.sa/dev-restaurant/برتقال-أبو-صره/p1869144195",
+                    "thumbnail": "https://cdn.salla.sa/jYnPX/WTRFk5Kh27UiOsJgU5iXJL3Qx1Z5906EWSYq3hwB.jpg",
+                    "has_special_price": false,
+                    "regular_price": {
+                      "amount": 5,
+                      "currency": "SAR"
+                    },
+                    "calories": null,
+                    "mpn": null,
+                    "gtin": null,
+                    "description": "",
+                    "favorite": null,
+                    "features": {
+                      "availability_notify": null,
+                      "show_rating": true
+                    }
+                  },
+                  "options": [],
+                  "images": [],
+                  "branches_quantity": []
+                },
+                {
+                  "id": 970100693,
+                  "name": "نعناع",
+                  "sku": "sku-3001",
+                  "product_sku_id": null,
+                  "quantity": 285,
+                  "currency": "SAR",
+                  "weight": 71.25,
+                  "weight_label": "٢٥٠ جم",
+                  "weight_type": "g",
+                  "product_type": "food",
+                  "product_thumbnail": "https://cdn.salla.sa/jYnPX/4bFwPYoxqEorfiNb9z8OaEKiF3OkhMJ4OgQbfFsA.jpg",
+                  "mpn": null,
+                  "gtin": null,
+                  "amounts": {
+                    "price_without_tax": {
+                      "amount": 1,
+                      "currency": "SAR"
+                    },
+                    "total_discount": {
+                      "amount": 0,
+                      "currency": "SAR"
+                    },
+                    "tax": {
+                      "percent": "0.00",
+                      "amount": {
+                        "amount": 0,
+                        "currency": "SAR"
+                      }
+                    },
+                    "total": {
+                      "amount": 285,
+                      "currency": "SAR"
+                    }
+                  },
+                  "notes": "",
+                  "product": {
+                    "id": 121279281,
+                    "type": "food",
+                    "promotion": {
+                      "title": null,
+                      "sub_title": null
+                    },
+                    "quantity": null,
+                    "status": "sale",
+                    "is_available": true,
+                    "sku": "sku-3001",
+                    "name": "نعناع",
+                    "price": {
+                      "amount": 1,
+                      "currency": "SAR"
+                    },
+                    "sale_price": {
+                      "amount": 0,
+                      "currency": "SAR"
+                    },
+                    "currency": "SAR",
+                    "url": "https://demostore.salla.sa/dev-restaurant/نعناع/p121279281",
+                    "thumbnail": "https://cdn.salla.sa/jYnPX/4bFwPYoxqEorfiNb9z8OaEKiF3OkhMJ4OgQbfFsA.jpg",
+                    "has_special_price": false,
+                    "regular_price": {
+                      "amount": 1,
+                      "currency": "SAR"
+                    },
+                    "calories": null,
+                    "mpn": null,
+                    "gtin": null,
+                    "description": "",
+                    "favorite": null,
+                    "features": {
+                      "availability_notify": null,
+                      "show_rating": true
+                    }
+                  },
+                  "options": [],
+                  "images": [],
+                  "branches_quantity": []
+                }
+              ],
+              "bank": null,
+              "tags": [],
+              "store": {
+                "id": 1320294021,
+                "store_id": 1320294021,
+                "user_id": 644031700,
+                "user_email": "kqgktgamztxurc2m@email.partners",
+                "username": "dev-restaurant",
+                "name": {
+                  "ar": "dev-restaurant",
+                  "en": null
+                },
+                "avatar": "https://salla-dev.s3.eu-central-1.amazonaws.com/logo/logo-fashion.jpg"
+              }
+            },
+            "merchant": 1320294021,
+            "created_at": "Mon Jun 09 2025 06:23:02 GMT+0300"
+          }
+        }
+      ]
+    },
+    "connections": {
+      "Salla Trigger": {
+        "main": [
+          [
+            {
+              "node": "Event Routing",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Event Routing": {
+        "main": [
+          [
+            {
+              "node": "Order Data Processing",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          []
+        ]
+      },
+      "OrderLines Object": {
+        "main": [
+          [
+            {
+              "node": "Insert Order Lines",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Route by Data Type": {
+        "main": [
+          [
+            {
+              "node": "Upsert Customer",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Insert Order",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "OrderLines Object",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Order Data Processing": {
+        "main": [
+          [
+            {
+              "node": "Route by Data Type",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "active": false,
+    "settings": {
+      "executionOrder": "v1"
+    },
+    "versionId": "",
+    "meta": {
+      "templateCredsSetupCompleted": true,
+      "instanceId": ""
+    },
+    "id": "",
+    "tags": []
+  }
